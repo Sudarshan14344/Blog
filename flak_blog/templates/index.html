@@ -1,0 +1,78 @@
+<!DOCtype html>
+<html lang = "en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title> Blog </title>
+    <link rel="stylesheet" href="https://cdnjs.cloudlare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
+    <style>
+        body {font-family: Arial, sans-serif; margin: 20px; }
+        .post {margin-bottom: 20px; padding: 10px; border: 1px solid #ccc;}
+        h2 {margin:0; }
+        button {margin-top: 10px; }
+    </style>
+</head>
+<body>
+    <h1> Blog Posts </h1>
+    <div id = "posts"> </div>
+    <h2> Add a New Post </h2>
+    <input type="text" id ="content" placeholder="Title" />
+    <textarea id = "content" placeholder="Content"></textarea>
+    <button oneclick ="addpost()"> Add Post </button>
+
+    <script>
+        async function fetchPosts() {
+            const response = await fetch('/posts');
+            const posts = await response.json();
+            const postsContainer = document.getElementById('posts');
+            postsContainer.innerHTML = '';
+
+            posts.forEach(post => {
+               const postDiv = document.createElement('div');
+               postDiv.classList.add('post');
+               postDiv.innerHTML = `
+                     <h2>${post.title}</h2>
+                     <p>${post.content}</p>
+                     <button onclick="deletePost(${post.id})">Delete</button>
+                    <button onclick="showEditForm(${post.id}, '${post.title}', '${post.content}')">Edit</button>
+               `;
+               postsContainer.appendChild(postDiv);
+           });
+       }
+       async function addPost() {
+           const title = document.getElementById('title').value;
+           const content = document.getElementById('content').value;
+           await fetch('/posts', {
+               method: 'POST',
+               headers: { 'Content-Type': 'application/json' },
+               body: JSON.stringify({ title, content })
+           });
+           document.getElementById('title').value = '';
+           document.getElementById('content').value = '';
+           fetchPosts();
+       }
+       async function deletePost(id) {
+           await fetch(`/posts/${id}`, { method: 'DELETE' });
+           fetchPosts();
+       }
+       function showEditForm(id, title, content) {
+           const newTitle = prompt("Edit Title", title);
+           const newContent = prompt("Edit Content", content);
+           if (newTitle && newContent) {
+               fetch(`/posts/${id}`, {
+                   method: 'PUT',
+                   headers: { 'Content-Type': 'application/json' },
+                   body: JSON.stringify({ title: newTitle, content: newContent })
+               }).then(fetchPosts);
+           }
+       }
+       fetchPosts();
+    </script>
+</body>
+</html>
+
+
+
+</body>
+
+</html>
